@@ -28,24 +28,7 @@ class App extends Component {
     const finish = this.state.columns[destination.droppableId]
 
     if (start === finish) {
-      const newRewardIds = Array.from(start.rewardIds)
-      newRewardIds.splice(source.index, 1)
-      newRewardIds.splice(destination.index, 0, draggableId)
-  
-      const newColumn = {
-        ...start,
-        rewardIds: newRewardIds
-      }
-  
-      const newState = {
-        ...this.state,
-        columns: {
-          ...this.state.columns,
-          [newColumn.id]: newColumn,
-        }
-      }
-  
-      this.setState(newState)
+      // do nothing
     } else {
       const startRewardIds = Array.from(start.rewardIds)
 
@@ -58,23 +41,59 @@ class App extends Component {
         rewardIds: startRewardIds,
       }
 
-      const finishRewardIds = Array.from(finish.rewardIds)
-      finishRewardIds.splice(destination.index, 0, draggableId)
-      const newFinish = {
-        ...finish,
-        rewardIds: finishRewardIds,
-      }
+      const rewardId = draggableId.split('-')[1]
+      if (source.droppableId === 'category-0') {
+        let clones = this.state.rewards[draggableId].clones
+        const newCloneId = clones.length > 0 ? Math.max(...clones) + 1 : 1
+        clones.push(newCloneId)
+        const newRewardId = `reward-${rewardId}-${newCloneId}`
 
-      const newState = {
-        ...this.state,
-        columns: {
-          ...this.state.columns,
-          [newStart.id]: newStart,
-          [newFinish.id]: newFinish,
+        const finishRewardIds = Array.from(finish.rewardIds)
+        finishRewardIds.splice(destination.index, 0, newRewardId)
+        const newFinish = {
+          ...finish,
+          rewardIds: finishRewardIds,
         }
-      }
+        const newState = {
+          ...this.state,
+          rewards: {
+            ...this.state.rewards,
+            [draggableId]: {
+              ...this.state.rewards[draggableId],
+              clones,
+            },
+            [newRewardId]: {
+              id: newRewardId,
+              content: this.state.rewards[draggableId].content
+            }
+          },
+          columns: {
+            ...this.state.columns,
+            [newStart.id]: newStart,
+            [newFinish.id]: newFinish,
+          }
+        }
 
-      this.setState(newState)
+        this.setState(newState)
+      } else {
+        const finishRewardIds = Array.from(finish.rewardIds)
+        finishRewardIds.splice(destination.index, 0, draggableId)
+        const newFinish = {
+          ...finish,
+          rewardIds: finishRewardIds,
+        }
+
+        const newState = {
+          ...this.state,
+          columns: {
+            ...this.state.columns,
+            [newStart.id]: newStart,
+            [newFinish.id]: newFinish,
+          }
+        }
+
+        this.setState(newState)
+      }
     }
     return
   }
@@ -85,6 +104,27 @@ class App extends Component {
   
   onDragUpdate = update => {
     // TODO
+  }
+
+  onRemoveReward = (category, index) => {
+    const current = this.state.columns[category]
+    const currentRewardIds = Array.from(current.rewardIds)
+    currentRewardIds.splice(index, 1)
+    const newCurrent = {
+      ...current,
+      rewardIds: currentRewardIds,
+    }
+
+    const newState = {
+      ...this.state,
+      columns: {
+        ...this.state.columns,
+        [category]: newCurrent
+      }
+    }
+
+    this.setState(newState)
+    return
   }
 
   render() {
@@ -99,7 +139,7 @@ class App extends Component {
             const column = this.state.columns[columnId]
             const rewards = column.rewardIds.map(rewardId => this.state.rewards[rewardId])
 
-            return <Column key={column.id} column={column} rewards={rewards} />
+            return <Column key={column.id} column={column} rewards={rewards} onRemoveReward={this.onRemoveReward} />
           })}
         </Container>
       </DragDropContext>

@@ -10,12 +10,18 @@ const Container = styled.div`
   background-color: ${props => props.isDragging ? 'lightgreen' : 'white'};
 
   display: flex;
+  justify-content: space-between;
 `
-const Clone = styled(Container)`
-  + div {
-    display: none!important;
-  }
-`
+
+const Button = styled.button`
+  border: none;
+  color: red;
+  background-color: white;
+
+  display: flex;
+  justify-content: flex-end;
+`;
+
 
 export default class Task extends React.Component {
   render() {
@@ -30,10 +36,17 @@ export default class Task extends React.Component {
               isDragging={snapshot.isDragging}
             >
               {this.props.reward.content}
+              {this.props.removable ?
+                <Button
+                  onClick={() => {
+                    console.log(`need remove ${this.props.reward.id} from ${this.props.category}`)
+                    this.props.onRemoveReward(this.props.category, this.props.index)
+                  }}
+                >
+                  X
+                </Button> : null
+              }
             </Container>
-            {this.props.clonable && snapshot.isDragging && (
-			        <Clone>{this.props.reward.content}</Clone>
-		        )}
           </React.Fragment>
         )}
       </Draggable>

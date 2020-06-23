@@ -25,17 +25,31 @@ const TaskList = styled.div`
 
 export default class Column extends React.Component {
   render() {
+    const isDropDisabled = this.props.column.id === 'category-0'
+
     return (
       <Container>
         <Title>{this.props.column.title}</Title>
-        <Droppable droppableId={this.props.column.id}>
+        <Droppable
+          droppableId={this.props.column.id}
+          isDropDisabled={isDropDisabled}
+        >
           {(provided, snapshot) => (
             <TaskList
               ref={provided.innerRef}
               {...provided.droppableProps}
               isDraggingOver={snapshot.isDraggingOver}
             >
-              {this.props.rewards.map((reward, index) => <Reward key={reward.id} reward={reward} index={index} cloneable={this.props.column.cloneable} />)}
+              {this.props.rewards.map((reward, index) => (
+                <Reward
+                  key={reward.id}
+                  reward={reward}
+                  index={index}
+                  removable={!isDropDisabled}
+                  category={this.props.column.id}
+                  onRemoveReward={this.props.onRemoveReward}
+                />
+              ))}
               {provided.placeholder}
             </TaskList>
           )}
